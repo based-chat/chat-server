@@ -1,4 +1,4 @@
-.PHONY: all install-deps generate generate-chat-api install-golangci-lint lint lint-feature clean test build build-server run-server
+.PHONY: all install-deps generate generate-chat-api install-golangci-lint lint lint-feature clean test build build-server build-client run-server
 all: clean generate build lint check-coverage  
 
 
@@ -59,12 +59,15 @@ check-coverage: install-go-test-coverage
 	go test ./... -coverprofile=./coverage.out  -covermode=atomic -coverpkg=./...
 	$(LOCAL_BIN)/go-test-coverage --config=./.testcoverage.yml
 
-build: build-server
+build: build-server build-client
 
 build-server: generate
 	mkdir -p $(BUILD_DIR)
 	go build -o $(BUILD_DIR)/server cmd/grpc-server/main.go
 
+build-client: generate
+	mkdir -p $(BUILD_DIR)
+	go build -o $(BUILD_DIR)/client cmd/grpc-client/main.go
 
 run-server: build-server
 	$(BUILD_DIR)/server
