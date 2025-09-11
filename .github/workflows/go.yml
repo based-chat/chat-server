@@ -4,8 +4,6 @@
 name: Go
 
 on:
-  push:
-    branches: [main, dev]
   pull_request:
     branches: [main, dev]
 
@@ -14,6 +12,7 @@ concurrency:
   cancel-in-progress: true
 permissions: 
   contents: read
+
 jobs:
 
   build:
@@ -25,11 +24,29 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.25.x'
+          go-version-file: go.mod
           cache: true
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12"
+
+      - name: Generate rpc API-entities
+        run: make generate
+
+      - name: Ensure no diff after generate
+        run: git diff --exit-code
+
       - name: Build
-        run: mkdir -p ./bin && go build -v -o ./bin/chat-server ./cmd/...
+        run: |
+          mkdir -p ./bin
+          while read -r pkg name; do
+            bin="./bin/$(basename "$pkg")"
+            echo "building $pkg -> $bin"
+            go build -v -o "$bin" "$pkg"
+          done < <(go list -f '{{.ImportPath}} {{.Name}}' ./cmd/... | awk '$2=="main"{print $1" "$2}')
+
 
       - name: Test
         run: go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
@@ -39,6 +56,7 @@ jobs:
         with:
           name: coverage
           path: coverage.out
+          if-no-files-found: ignore
 
   golangci:
     name: lint
