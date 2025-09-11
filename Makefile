@@ -1,17 +1,23 @@
-.PHONY: all install-deps generate generate-chat-api install-golangci-lint lint lint-feature clean test
-all: clean generate lint check-coverage
+.PHONY: all install-deps generate generate-chat-api install-golangci-lint lint lint-feature clean test build build-server run-server
+all: clean generate build lint check-coverage  
+
+
+LOCAL_BIN?=$(CURDIR)/.bin
+PROTOC ?= protoc
+BUILD_DIR ?= $(CURDIR)/bin
 
 test: 
 	go test -v -race ./...
 
 clean:
-	rm -rf bin coverage.out
+	rm -rf $(LOCAL_BIN)
+	rm -rf $(BUILD_DIR)
+	rm -f coverage.out
 	rm -f pkg/chat/v1/*.pb.go pkg/chat/v1/*_grpc.pb.go
 	@if [ -d pkg/chat/v1 ] && [ ! "$(ls -A pkg/chat/v1)" ]; then rmdir pkg/chat/v1; fi
 
 
-LOCAL_BIN?=$(CURDIR)/bin
-PROTOC ?= protoc
+
 install-deps:
 	mkdir -p $(LOCAL_BIN)
 	GOBIN=$(LOCAL_BIN) go install -mod=mod google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.9
@@ -37,6 +43,9 @@ install-golangci-lint:
 lint: install-golangci-lint
 	$(LOCAL_BIN)/golangci-lint run ./... --config .golangci.yaml
 
+lint-fix: install-golangci-lint
+	$(LOCAL_BIN)/golangci-lint run --fix ./... --config .golangci.yaml
+
 lint-feature: install-golangci-lint
 	$(LOCAL_BIN)/golangci-lint run --config .golangci.yaml --new-from-rev dev
 
@@ -49,3 +58,13 @@ install-go-test-coverage:
 check-coverage: install-go-test-coverage
 	go test ./... -coverprofile=./coverage.out  -covermode=atomic -coverpkg=./...
 	$(LOCAL_BIN)/go-test-coverage --config=./.testcoverage.yml
+
+build: build-server
+
+build-server: generate
+	mkdir -p $(BUILD_DIR)
+	go build -o $(BUILD_DIR)/server cmd/grpc-server/main.go
+
+
+run-server: build-server
+	$(BUILD_DIR)/server
