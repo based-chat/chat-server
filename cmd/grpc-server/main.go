@@ -4,14 +4,16 @@ package main
 import (
 	"context"
 	"log"
+	"math"
 	"net"
 	"time"
 
-	srv "github.com/based-chat/chat-server/pkg/chat/v1"
-	"github.com/brianvoe/gofakeit"
+	"github.com/brianvoe/gofakeit/v7"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/emptypb"
+
+	srv "github.com/based-chat/chat-server/pkg/chat/v1"
 )
 
 const (
@@ -24,9 +26,6 @@ type server struct {
 }
 
 func (s *server) Create(_ context.Context, _ *srv.CreateRequest) (*srv.CreateResponse, error) {
-
-	gofakeit.Seed(time.Now().UnixNano())
-
 	return &srv.CreateResponse{
 		Id: abs(gofakeit.Int64()),
 	}, nil
@@ -37,7 +36,6 @@ func (s *server) Delete(_ context.Context, _ *srv.DeleteRequest) (*emptypb.Empty
 }
 
 func (s *server) SendMessage(_ context.Context, _ *srv.SendMessageRequest) (*srv.SendMessageResponse, error) {
-
 	return &srv.SendMessageResponse{
 		Id: abs(gofakeit.Int64()),
 	}, nil
@@ -54,6 +52,10 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	if err = gofakeit.Seed(time.Now().UnixNano()); err != nil {
+		log.Default().Printf("failed to seed random number generator: %v", err)
+	}
+
 	s := grpc.NewServer()
 	reflection.Register(s)
 	srv.RegisterChatV1Server(s, &server{})
@@ -65,6 +67,9 @@ func main() {
 }
 
 func abs(x int64) int64 {
+	if x == math.MinInt64 {
+		return math.MaxInt64
+	}
 	if x < 0 {
 		return -x
 	}

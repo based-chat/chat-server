@@ -1,5 +1,5 @@
-.PHONY: all install-deps generate generate-chat-api install-golangci-lint lint lint-feature clean test
-all: clean build generate lint check-coverage 
+.PHONY: all install-deps generate generate-chat-api install-golangci-lint lint lint-feature clean test build build-server run-server
+all: clean generate build lint check-coverage  
 
 
 LOCAL_BIN?=$(CURDIR)/.bin
@@ -43,6 +43,9 @@ install-golangci-lint:
 lint: install-golangci-lint
 	$(LOCAL_BIN)/golangci-lint run ./... --config .golangci.yaml
 
+lint-fix: install-golangci-lint
+	$(LOCAL_BIN)/golangci-lint run --fix ./... --config .golangci.yaml
+
 lint-feature: install-golangci-lint
 	$(LOCAL_BIN)/golangci-lint run --config .golangci.yaml --new-from-rev dev
 
@@ -58,7 +61,8 @@ check-coverage: install-go-test-coverage
 
 build: build-server
 
-build-server:
+build-server: generate
+	mkdir -p $(BUILD_DIR)
 	go build -o $(BUILD_DIR)/server cmd/grpc-server/main.go
 
 
