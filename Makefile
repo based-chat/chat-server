@@ -1,11 +1,14 @@
 .PHONY: all install-deps generate generate-chat-api install-golangci-lint lint lint-feature clean test
-all: clean generate lint test check-coverage
+all: clean generate lint check-coverage
 
 test: 
 	go test -v -race ./...
 
 clean:
-	rm -rf bin pkg coverage.out
+	rm -rf bin coverage.out
+	rm -f pkg/chat/v1/*.pb.go pkg/chat/v1/*_grpc.pb.go
+	@if [ -d pkg/chat/v1 ] && [ ! "$(ls -A pkg/chat/v1)" ]; then rmdir pkg/chat/v1; fi
+
 
 LOCAL_BIN?=$(CURDIR)/bin
 PROTOC ?= protoc
