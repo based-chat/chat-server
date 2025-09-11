@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package api.chat.v1;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/based-chat/chat-server/pkg/chat/v1;chat_v1";
+
+service ChatV1 {
+    rpc Create(CreateRequest) returns (CreateResponse);
+    rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+}
+
+message CreateRequest {
+    repeated string usernames = 1;
+}
+
+message CreateResponse {
+    int64 id = 1;
+}
+
+message DeleteRequest {
+    int64 id = 1;
+}
+
+message SendMessageRequest {
+    int64 chat_id = 1;
+    string sender = 2;
+    string message = 3;   
+}
+
+message SendMessageResponse {
+    int64 id = 1;
+}
