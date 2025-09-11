@@ -1,4 +1,4 @@
-.PHONY: all install-deps generate generate-chat-api install-golangci-lint lint lint-feature clean test build build-server run-server
+.PHONY: all install-deps generate generate-chat-api install-golangci-lint lint lint-feature clean test build build-server build-client run-server
 all: clean generate build lint check-coverage  
 
 
