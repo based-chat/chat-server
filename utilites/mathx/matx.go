@@ -1,5 +1,5 @@
-// Package utilites provides utility functions.
-package utilites
+// Package mathx provides math functions.
+package mathx
 
 import "math"
 
@@ -10,8 +10,10 @@ func Abs(x int64) int64 {
 	if x == math.MinInt64 {
 		return math.MaxInt64
 	}
+
 	if x < 0 {
 		return -x
 	}
+
 	return x
 }

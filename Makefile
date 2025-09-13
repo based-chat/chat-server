@@ -16,8 +16,6 @@ clean:
 	rm -f pkg/chat/v1/*.pb.go pkg/chat/v1/*_grpc.pb.go
 	@if [ -d pkg/chat/v1 ] && [ ! "$(ls -A pkg/chat/v1)" ]; then rmdir pkg/chat/v1; fi
 
-
-
 install-deps:
 	mkdir -p $(LOCAL_BIN)
 	GOBIN=$(LOCAL_BIN) go install -mod=mod google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.9
@@ -59,13 +57,13 @@ check-coverage: install-go-test-coverage
 	go test ./... -coverprofile=./coverage.out  -covermode=atomic -coverpkg=./...
 	$(LOCAL_BIN)/go-test-coverage --config=./.testcoverage.yml
 
-build: build-server build-client
+build: generate build-server build-client
 
-build-server: generate
+build-server: 
 	mkdir -p $(BUILD_DIR)
 	go build -o $(BUILD_DIR)/server cmd/grpc-server/main.go
 
-build-client: generate
+build-client: 
 	mkdir -p $(BUILD_DIR)
 	go build -o $(BUILD_DIR)/client cmd/grpc-client/main.go
 
